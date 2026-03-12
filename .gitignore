@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.next/
+output/
+.env
+*.pdf
+next-env.d.ts
