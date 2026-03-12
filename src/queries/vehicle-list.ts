@@ -19,24 +19,30 @@ export interface WarrantiedVehicle {
  */
 export async function getWarrantiedVehicles(): Promise<WarrantiedVehicle[]> {
   return query<WarrantiedVehicle>(`
-    SELECT DISTINCT
-      a.assetnum,
-      ISNULL(a.gb_assetregistrationno, '') AS vehicleNo,
-      a.description,
-      a.serialnum,
-      a.pluspcustomer,
-      c.name AS customerName,
-      ag.agreement,
-      ag.startdate AS warrantyStart,
-      ag.enddate AS warrantyEnd
-    FROM caentitle ce
-    JOIN asset a ON a.assetnum = ce.gb_vehiclenum AND a.siteid = ce.siteid
-    JOIN pluspagreement ag ON ag.agreement = ce.agreement AND ag.orgid = ce.orgid
-    LEFT JOIN pluspcustomer c ON c.customer = a.pluspcustomer
-    WHERE ce.siteid = @siteId
-      AND ag.status = 'ACTIVE'
-      AND ag.startdate >= DATEADD(YEAR, -5, GETDATE())
-    ORDER BY a.pluspcustomer, a.assetnum
+    WITH ranked AS (
+      SELECT
+        a.assetnum,
+        ISNULL(a.gb_assetregistrationno, '') AS vehicleNo,
+        a.description,
+        a.serialnum,
+        a.pluspcustomer,
+        c.name AS customerName,
+        ag.agreement,
+        ag.startdate AS warrantyStart,
+        ag.enddate AS warrantyEnd,
+        ROW_NUMBER() OVER (PARTITION BY a.assetnum ORDER BY ag.enddate DESC, ag.startdate DESC) AS rn
+      FROM caentitle ce
+      JOIN asset a ON a.assetnum = ce.gb_vehiclenum AND a.siteid = ce.siteid
+      JOIN pluspagreement ag ON ag.agreement = ce.agreement AND ag.orgid = ce.orgid
+      LEFT JOIN pluspcustomer c ON c.customer = a.pluspcustomer
+      WHERE ce.siteid = @siteId
+        AND ag.status = 'ACTIVE'
+        AND ag.startdate >= DATEADD(YEAR, -5, GETDATE())
+    )
+    SELECT assetnum, vehicleNo, description, serialnum, pluspcustomer, customerName, agreement, warrantyStart, warrantyEnd
+    FROM ranked
+    WHERE rn = 1
+    ORDER BY pluspcustomer, assetnum
   `, {
     siteId: { type: sql.VarChar, value: config.siteId },
   });
