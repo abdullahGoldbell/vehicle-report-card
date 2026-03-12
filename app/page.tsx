@@ -33,14 +33,18 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = vehicles.filter(v =>
-    !search ||
-    v.assetnum.toLowerCase().includes(search.toLowerCase()) ||
-    v.vehicleNo?.toLowerCase().includes(search.toLowerCase()) ||
-    v.description.toLowerCase().includes(search.toLowerCase()) ||
-    v.customerName?.toLowerCase().includes(search.toLowerCase()) ||
-    v.pluspcustomer?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = vehicles.filter(v => {
+    if (!search) return true;
+    const s = search.toLowerCase();
+    return (
+      (v.assetnum ?? '').toLowerCase().includes(s) ||
+      (v.vehicleNo ?? '').toLowerCase().includes(s) ||
+      (v.description ?? '').toLowerCase().includes(s) ||
+      (v.customerName ?? '').toLowerCase().includes(s) ||
+      (v.pluspcustomer ?? '').toLowerCase().includes(s) ||
+      (v.agreement ?? '').toLowerCase().includes(s)
+    );
+  });
 
   const uniqueCustomers = new Set(vehicles.map(v => v.pluspcustomer));
 
