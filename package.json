@@ -14,6 +14,7 @@
     "generate:fleet": "npx tsx src/index.ts fleet"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@tailwindcss/postcss": "^4.2.1",
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
