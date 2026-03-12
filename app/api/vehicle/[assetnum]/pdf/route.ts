@@ -29,7 +29,7 @@ export async function GET(
     const pdfPath = await generateVehicleReportPdf(report);
 
     const pdfBuffer = fs.readFileSync(pdfPath);
-    const filename = `vehicle-report-${assetnum}.pdf`;
+    const filename = `vehicle-report-${vehicle.vehicleNo || assetnum}.pdf`;
 
     return new NextResponse(pdfBuffer, {
       headers: {
